@@ -21,11 +21,26 @@ type knapsack struct {
 	totalWorth, currentItemsVolume, maxVolume int
 }
 
+type knapsackParallel struct {
+	items                                     *[]item
+	totalWorth, currentItemsVolume, maxVolume int
+}
+
 func (k *knapsack) addItem(i item) error {
 	if k.currentItemsVolume+i.volume <= k.maxVolume {
 		k.currentItemsVolume += i.volume
 		k.totalWorth += i.worth
 		k.items = append(k.items, i)
+		return nil
+	}
+	return errors.New("item too big!")
+}
+
+func (k *knapsackParallel) addItemParallel(i item) error {
+	if k.currentItemsVolume+i.volume <= k.maxVolume {
+		k.currentItemsVolume += i.volume
+		k.totalWorth += i.worth
+		*k.items = append(*k.items, i)
 		return nil
 	}
 	return errors.New("item too big!")
@@ -54,25 +69,6 @@ func checkItem(k *knapsack, i int, j int, is []item, matrix [][]int) {
 	}
 }
 
-// CheckItem for concurrent computation
-func checkItemParallel(k *knapsack, i int, j int, is []item, matrix [][]int) {
-	if i <= 0 || j <= 0 {
-		return
-	}
-
-	wg.Add(1) // for starting a new go routine
-
-	pick := matrix[i][j]
-	if pick != matrix[i-1][j] {
-		k.addItem(is[i-1])
-		go checkItemParallel(k, i-1, j-is[i-1].volume, is, matrix)
-	} else {
-		go checkItemParallel(k, i-1, j, is, matrix)
-	}
-
-	wg.Done()
-}
-
 func dynamic(is []item, k *knapsack) *knapsack {
 	numItems := len(is) // number of items in knapsack
 	capacity := k.maxVolume
@@ -95,10 +91,6 @@ func dynamic(is []item, k *knapsack) *knapsack {
 		}
 	}
 
-	// Printing the matrix just to know what happens
-	// fmt.Println("Matrix is:")
-	// printMatrix(matrix, capacity)
-
 	checkItem(k, numItems, capacity, is, matrix)
 	k.totalWorth = matrix[numItems][capacity]
 	//k.totalWeight = k.currentItemsVolume
@@ -106,7 +98,29 @@ func dynamic(is []item, k *knapsack) *knapsack {
 	return k
 }
 
-func dynamicParallel(is []item, k *knapsack) *knapsack {
+///////////////////////////// Parallel computation ---------------------------------
+
+// CheckItem for concurrent computation
+func checkItemParallel(k *knapsackParallel, i int, j int, is []item, matrix [][]int) {
+	if i <= 0 || j <= 0 {
+		wg.Done()
+		return
+	}
+
+	pick := matrix[i][j]
+	fmt.Printf("\n pick is: %v", pick)
+	fmt.Printf("\n matrix[i-1][j] is: %v", matrix[i-1][j])
+	if pick != matrix[i-1][j] {
+		k.addItemParallel(is[i-1])
+		wg.Add(1) // for starting a new go routine
+		go checkItemParallel(k, i-1, j-is[i-1].volume, is, matrix)
+	} else {
+		wg.Add(1) // for starting a new go routine
+		go checkItemParallel(k, i-1, j, is, matrix)
+	}
+}
+
+func dynamicParallel(is []item, k *knapsackParallel) *knapsackParallel {
 	numItems := len(is) // number of items in knapsack
 	capacity := k.maxVolume
 
@@ -167,8 +181,11 @@ func main() {
 
 	kd := knapsack{items: make([]item, 0), totalWorth: 0, currentItemsVolume: 0, maxVolume: 10}
 
-	kdPar := knapsack{items: make([]item, 0), totalWorth: 0, currentItemsVolume: 0, maxVolume: 10}
+	// initializing a knapsack parallel struct which contains pointer to
+	itemList := make([]item, 0)
+	kdp := knapsackParallel{items: &itemList, totalWorth: 0, currentItemsVolume: 0, maxVolume: 10}
 
+	// GREEDY Algorithm ------------------------------------------------------------------------------
 	greedy(initItems, &kg)
 	fmt.Println("Greedy Algorithm:")
 	resultg := ""
@@ -180,7 +197,7 @@ func main() {
 	fmt.Println("Total Worth: " + strconv.Itoa(resultgWorth))
 	fmt.Println("Total Volume: " + strconv.Itoa(kg.currentItemsVolume))
 
-	// Dynamic computation starts here:
+	// DYNAMIC Algorithm -----------------------------------------------------------------------------
 	dynamic(initItems, &kd)
 
 	fmt.Println()
@@ -196,19 +213,20 @@ func main() {
 	fmt.Println("Total Worth: " + strconv.Itoa(resultdWorth))
 	fmt.Println("Total Volume: " + strconv.Itoa(kd.currentItemsVolume))
 
-	// Dynamic computation with parallel checkItems function:
-	dynamic(initItems, &kdPar)
+	// DYNAMIC PARALLEL Algorithm --------------------------------------------------------------------
+	dynamicParallel(initItems, &kdp)
 
 	fmt.Println()
 	fmt.Println("Dynamic Algorithm in parallel:")
-	resultd = ""
-	resultdWorth = kdPar.totalWorth
+	resultdp := ""
+	resultdpWorth := kdp.totalWorth
 
-	for _, it := range kdPar.items {
-		resultd += it.name + " "
+	for _, it := range *kdp.items {
+		fmt.Println(it)
+		resultdp += it.name + " "
 	}
 
-	fmt.Println(resultd)
-	fmt.Println("Total Worth parallel: " + strconv.Itoa(resultdWorth))
-	fmt.Println("Total Volume parallel: " + strconv.Itoa(kdPar.currentItemsVolume))
+	fmt.Println(resultdp)
+	fmt.Println("Total Worth parallel: " + strconv.Itoa(resultdpWorth))
+	fmt.Println("Total Volume parallel: " + strconv.Itoa(kdp.currentItemsVolume))
 }
