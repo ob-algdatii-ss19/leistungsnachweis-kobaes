@@ -16,6 +16,7 @@ pipeline {
                 docker { image 'obraun/vss-protoactor-jenkins' }
             }
             steps {
+                sh 'go get github.com/stretchr/testify/assert'
                 sh 'go get github.com/ogier/pflag'
                 sh 'go test -v'
                 sh 'go test -bench=.'
