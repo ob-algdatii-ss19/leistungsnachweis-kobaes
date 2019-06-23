@@ -138,7 +138,7 @@ func main() {
 			os.Exit(1)
 		}
 	} else {
-		csvFile, err = os.Open("config.csv") // Opens a file for read only
+		csvFile, err = os.Open("configs/config.csv") // Opens a file for read only
 		// If no config file could be opened an error occurs and the program is ended
 		if err != nil {
 			fmt.Printf("[ERROR] %v", err)
