@@ -6,7 +6,8 @@ pipeline {
                 docker { image 'obraun/vss-jenkins' }
             }
             steps {
-                sh 'go get github.com/ogier/pflag'                
+                sg 'go install -v github.com/ogier/pflag'
+                // sh 'go get github.com/ogier/pflag'               
                 // sh 'echo go test -v'
                 sh 'echo go test -bench=.'
             }
