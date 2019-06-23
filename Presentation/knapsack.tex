@@ -49,6 +49,22 @@
 
 \usepackage{diagbox}
 
+\usepackage{tikz}
+\usetikzlibrary{fit,shapes.geometric}
+
+\newcounter{nodemarkers}
+\newcommand\circletext[1]{%
+	\tikz[overlay,remember picture] 
+	\node (marker-\arabic{nodemarkers}-a) at (0,1.5ex) {};%
+	#1%
+	\tikz[overlay,remember picture]
+	\node (marker-\arabic{nodemarkers}-b) at (0,0){};%
+	\tikz[overlay,remember picture,inner sep=2pt]
+	\node[draw,ellipse,fit=(marker-\arabic{nodemarkers}-a.center) (marker-\arabic{nodemarkers}-b.center)] {};%
+	\stepcounter{nodemarkers}%
+}
+
+
 
 \title{Rucksack Problem}
 \subtitle{Algorithmen und Datenstrukturen II}
@@ -171,28 +187,101 @@
 \section*{Dynamische Programmierung}
 
 \begin{frame}[fragile]{Dynamische Programmierung}
-	\begin{tabular}{|l||c|c|c|c|}
+	\begin{enumerate}[<+- | alert@+>]
+		\item Teile das Problem in gleichartige Teilprobleme!
+		\item Speichere die Resultate der Teilprobleme systematisch, um wiederholte Berechnungen zu vermeiden!
+		\item Setze die optimale Lösung aus den optimalen Lösungen der Teilprobleme zusammen!
+	\end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]{Dynamische Programmierung}
+	\textbf{Idee:}
+	\begin{enumerate}[<+- | alert@+>]
+		\item Löse das Problem für eine Menge von Gegenständen mit einem Gegenstand und einem Rücksack mit Volumen eins. Speichere das Ergebnis in einer Tabelle.
+		\item Wiederhole das für verschiedene Rucksäcke mit volumen $2, ..., V$ und benutze dabei die vorherige Ergebnisse.
+		\item Wiederhole die vorherigen Schritte für Mengen mit zwei, drei, ..., n Gegenständen.		
+	\end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]{Dynamische Programmierung}
+		\begin{lstlisting}[language=go]
+		for i := 1; i <= numItems; i++ {
+			for j := 1; j <= capacity; j++ {
+				if is[i-1].volume <= j {
+					valueOne := float64(matrix[i-1][j])
+					valueTwo := float64(is[i-1].worth + matrix[i-1][j-is[i-1].volume])
+					matrix[i][j] = int(math.Max(valueOne, valueTwo))
+				} else {
+					matrix[i][j] = matrix[i-1][j]
+				}
+			}
+		}			
+		\end{lstlisting}
+\end{frame}
+	
+\begin{frame}[fragile]{Dynamische Programmierung}
+	\textbf{Beispiel:}
+	\begin{itemize}
+		\item[] Rucksack mit Volumen 5.
+		\item[] Gegenstände :
+		\begin{enumerate}
+			\item $v_{1} = 3, w_{1} = 5$
+			\item $v_{2} = 2, w_{2} = 3$
+			\item $v_{3} = 1, w_{3} = 4$
+		\end{enumerate} 
+	\end{itemize}
+\end{frame}
+		
+\begin{frame}[fragile]{Dynamische Programmierung}
+	\begin{center}
+		\textbf{Fülle die Tabelle!}
+	\end{center}
+	\begin{center}
+		\begin{tabular}{|l||p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|}
 		\hline
 		\diagbox{I:}{V:}
-		& 0 & 1 & 2 & 3 \\
+		& 1 & 2 & 3 & 4 & 5 \\
 		\hline
+		1 (3, 5)	&    0    &     0     &      5      &       5      &       5     \\
 		\hline
-		0	&    0    &     0     &      0      &       0     \\
+		2 (2, 3)	&    0    &     3     &      5      &       5      &       8     \\
 		\hline
-		1	&    0    &     0     &      0      &       0     \\
-		\hline
-		2	&    0    &     0     &      0      &       0     \\
-		\hline
-		3	&    0    &     0     &      0      &       0     \\
-		\hline
-		4	&    0    &     0     &      0      &       0     \\
-		\hline
-		5	&    0    &     0     &      0      &       0     \\
+		3 (1, 4)	&    4    &     4     &      7      &       9      &       9     \\
 		\hline
 	\end{tabular}
 
+	\end{center}
 
 \end{frame}
+
+\begin{frame}[fragile]{Dynamische Programmierung}
+	\begin{itemize}
+		\item Fange unten Rechts an.
+		\item Vergleiche den Wert mit dem Wert in der Zelle drüber.
+			\begin{enumerate}
+				\item Die Werte sind gleich $\Rightarrow$ Der Gegenstand ist nicht genommen.
+				\item Die Werte sind nicht gleich $\Rightarrow$ Der Gegenstand genommen. So gehe eine Zeile hoch und um Volumen vom Gegenstand nach links. 
+			\end{enumerate}
+		\item Wiederhole bis der Zeiger aus der Tabelle raus geht.
+	\end{itemize}
+	\begin{center}
+		\begin{tabular}{|l||p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|}
+			\hline
+			\diagbox{I:}{V:}
+			& 1 & 2 & 3 & 4 & 5 \\
+			\hline
+			1 (3, 5)	&    0    &     0     &      5      & \circletext{5}      &       5     \\
+			\hline
+			2 (2, 3)	&    0    &     3     &      5      & 		5      &       8     \\
+			\hline
+			3 (1, 4)	&    4    &     4     &      7      &       9      & \circletext{9} \\
+			\hline
+		\end{tabular}
+		
+	\end{center}
+	
+\end{frame}
+
 
 \begin{frame}[standout]
   Fragen?
