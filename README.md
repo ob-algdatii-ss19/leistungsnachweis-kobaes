@@ -1,5 +1,9 @@
 # Rucksackproblem-Solver
 
+Travis - Develop Branch
+![Travis - Develop Branch](https://travis-ci.com/ob-algdatii-ss19/leistungsnachweis-kobaes.svg?token=uuWEU7CbK6apjnjsgMfR&branch=develop)
+
+
 ## About
 
 Dieses Programm ermöglicht ein Lösen des Rucksacksproblems via Kommandozeile.  
@@ -61,3 +65,6 @@ Oven JewingGum
 Total Worth: 32
 Total Volume: 4
 ```
+
+# Authors
+[Sebastian Baumann](https://github.com/baschte83), [Korbinian Karl](https://github.com/korbster), [Ehsan Moslehi](https://github.com/eca852)
