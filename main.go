@@ -11,13 +11,7 @@ import (
 	"math"
 	"os"
 	"sort"
-<<<<<<< HEAD
 	"strconv"
-	"sync"
-=======
-	strconv "strconv"
-	// "sync"
->>>>>>> origin/csv
 )
 
 //nolint:gochecknoglobals
@@ -64,17 +58,7 @@ func (k *knapsack) addItem(i item) error {
 	return errors.New("item too big")
 }
 
-<<<<<<< HEAD
-func (k *knapsackParallel) addItemParallel(i item) error {
-	if k.currentItemsVolume+i.volume <= k.maxVolume {
-		k.currentItemsVolume += i.volume
-		k.totalWorth += i.worth
-		*k.items = append(*k.items, i)
-		return nil
-	}
-	return errors.New("item too big")
-}
-=======
+
 // func (k *knapsackParallel) addItemParallel(i item) error {
 // 	if k.currentItemsVolume+i.volume <= k.maxVolume {
 // 		k.currentItemsVolume += i.volume
@@ -84,7 +68,6 @@ func (k *knapsackParallel) addItemParallel(i item) error {
 // 	}
 // 	return errors.New("item too big!")
 // }
->>>>>>> origin/csv
 
 func greedy(is []item, k *knapsack) {
 	sort.Slice(is, func(i, j int) bool {
@@ -283,24 +266,10 @@ func main() {
 		})
 	}
 
-<<<<<<< HEAD
-	fmt.Printf("[INFO] result of reading the .csv file: %v\n", items)
 
-	initItems := []item{
-		{name: "Apple", volume: 3, worth: 30},
-		{name: "Apple", volume: 3, worth: 30},
-		{name: "Orange", volume: 4, worth: 30},
-		{name: "Orange", volume: 4, worth: 30},
-		{name: "Pencil", volume: 1, worth: 10},
-		{name: "Pencil", volume: 1, worth: 10},
-		{name: "Pencil", volume: 1, worth: 10},
-		{name: "Mirror", volume: 5, worth: 40},
-		{name: "Mirror", volume: 5, worth: 40},
-=======
 	fmt.Println("Using the following items for computing knapsack:")
 	for _, i := range initItems {
 		fmt.Printf("Item: %v, Volume: %v, Worth: %v\n", i.name, i.volume, i.worth)
->>>>>>> origin/csv
 	}
 	fmt.Println()
 
