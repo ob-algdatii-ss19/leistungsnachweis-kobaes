@@ -21,11 +21,13 @@ var (
 	flagDynamic    bool
 	flagHelp       bool
 	flagAll        bool
+	flagBagSize    bool
 )
 
 //nolint:gochecknoinits
 func init() {
-	flag.BoolVar(&flagConfigFile, "configfile", false, "flag which specifies a path to a config file")
+	flag.BoolVar(&flagConfigFile, "configfile", false, "flag which specifies a path to a config file.")
+	flag.BoolVar(&flagConfigFile, "bagsize", false, "flag which specifies the bag size (rucksack volume). Default is 10.")
 	flag.BoolVar(&flagGreedy, "greedy", false, "flag which specifies to use greedy algorithm")
 	flag.BoolVar(&flagDynamic, "dynamic", false, "flag which specifies to use dynamic algorithm")
 	flag.BoolVar(&flagAll, "all", false, "flag which specifies to use both greedy and dynamic algorithm")
@@ -115,6 +117,7 @@ func dynamic(is []item, k *knapsack) *knapsack {
 func main() {
 	var csvFile *os.File
 	var err error
+	bagsize := 10
 
 	// Flags ---------------------------------------------------------------------------
 	// Parsing the flags from above
@@ -128,6 +131,12 @@ func main() {
 		fmt.Println("The following flags are available:")
 		flag.PrintDefaults()
 		os.Exit(0)
+	}
+
+	if flagBagSize {
+
+	} else {
+		bagsize = 10
 	}
 
 	if flagConfigFile {
@@ -184,9 +193,9 @@ func main() {
 	}
 	fmt.Println()
 
-	kg := knapsack{items: make([]item, 0), totalWorth: 0, currentItemsVolume: 0, maxVolume: 10}
+	kg := knapsack{items: make([]item, 0), totalWorth: 0, currentItemsVolume: 0, maxVolume: bagsize}
 
-	kd := knapsack{items: make([]item, 0), totalWorth: 0, currentItemsVolume: 0, maxVolume: 10}
+	kd := knapsack{items: make([]item, 0), totalWorth: 0, currentItemsVolume: 0, maxVolume: bagsize}
 
 	// GREEDY Algorithm ------------------------------------------------------------------------------
 	if flagGreedy || flagAll {

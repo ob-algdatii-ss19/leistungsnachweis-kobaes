@@ -20,7 +20,7 @@ $ git clone https://github.com/ob-algdatii-ss19/leistungsnachweis-kobaes
 Danach muss das noch das Go-Executable erzeugt werden mit:
 
 ```
-$ go build
+$ go install
 ```
 
 
