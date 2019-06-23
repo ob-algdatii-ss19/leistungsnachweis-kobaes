@@ -1,16 +1,16 @@
 package main
 
 import (
-	bufio "bufio"
-	csv "encoding/csv"
+	"bufio"
+	"encoding/csv"
 	"errors"
 	"fmt"
 	flag "github.com/ogier/pflag"
-	io "io"
+	"io"
 	"math"
-	os "os"
+	"os"
 	"sort"
-	strconv "strconv"
+	"strconv"
 	"sync"
 )
 
@@ -45,7 +45,7 @@ func (k *knapsack) addItem(i item) error {
 		k.items = append(k.items, i)
 		return nil
 	}
-	return errors.New("item too big!")
+	return errors.New("item too big")
 }
 
 func (k *knapsackParallel) addItemParallel(i item) error {
@@ -55,7 +55,7 @@ func (k *knapsackParallel) addItemParallel(i item) error {
 		*k.items = append(*k.items, i)
 		return nil
 	}
-	return errors.New("item too big!")
+	return errors.New("item too big")
 }
 
 func greedy(is []item, k *knapsack) {
@@ -239,15 +239,15 @@ func main() {
 	fmt.Printf("[INFO] result of reading the .csv file: %v\n", items)
 
 	initItems := []item{
-		item{name: "Apple", volume: 3, worth: 30},
-		item{name: "Apple", volume: 3, worth: 30},
-		item{name: "Orange", volume: 4, worth: 30},
-		item{name: "Orange", volume: 4, worth: 30},
-		item{name: "Pencil", volume: 1, worth: 10},
-		item{name: "Pencil", volume: 1, worth: 10},
-		item{name: "Pencil", volume: 1, worth: 10},
-		item{name: "Mirror", volume: 5, worth: 40},
-		item{name: "Mirror", volume: 5, worth: 40},
+		{name: "Apple", volume: 3, worth: 30},
+		{name: "Apple", volume: 3, worth: 30},
+		{name: "Orange", volume: 4, worth: 30},
+		{name: "Orange", volume: 4, worth: 30},
+		{name: "Pencil", volume: 1, worth: 10},
+		{name: "Pencil", volume: 1, worth: 10},
+		{name: "Pencil", volume: 1, worth: 10},
+		{name: "Mirror", volume: 5, worth: 40},
+		{name: "Mirror", volume: 5, worth: 40},
 	}
 
 	kg := knapsack{items: make([]item, 0), totalWorth: 0, currentItemsVolume: 0, maxVolume: 10}

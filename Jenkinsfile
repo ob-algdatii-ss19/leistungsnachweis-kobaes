@@ -15,6 +15,7 @@ pipeline {
                 docker { image 'obraun/vss-jenkins' }
             }   
             steps {
+                sh 'go get github.com/ogier/pflag'
                 sh 'golangci-lint run --enable-all'
             }
         }
