@@ -26,6 +26,7 @@ pipeline {
             }   
             steps {
                 // sh 'echo skip linter'
+                sh 'go get github.com/ogier/pflag'
                 sh 'golangci-lint run --enable-all'
             }
         }
