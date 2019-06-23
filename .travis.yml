@@ -6,4 +6,4 @@ before_script:
 script:
   - go test -v
   - go test -bench=.
-  - golangci-lint run --enable-all
+  - golangci-lint run --enable-all --skip-files main_test.go
