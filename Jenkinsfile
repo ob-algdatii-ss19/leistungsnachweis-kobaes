@@ -16,7 +16,8 @@ pipeline {
                 docker { image 'obraun/vss-protoactor-jenkins' }
             }
             steps {
-                sh 'echo go test -bench=.'
+                sh 'go test -v'
+                sh 'go test -bench=.'
             }
         }
         stage('Lint') {
