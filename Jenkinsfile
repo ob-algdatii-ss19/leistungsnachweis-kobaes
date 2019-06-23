@@ -29,7 +29,7 @@ pipeline {
             }   
             steps {
                 sh 'go get github.com/ogier/pflag'
-                sh 'golangci-lint run --enable-all'
+                sh 'golangci-lint run --enable-all --skip-files main_test.go'
             }
         }
         stage('Build Docker Image') {
