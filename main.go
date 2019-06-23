@@ -16,11 +16,19 @@ import (
 
 var (
 	flagConfigFile bool
+	flagGreedy     bool
+	flagDynamic    bool
+	flagHelp       bool
+	flagAll        bool
 	wg             sync.WaitGroup
 )
 
 func init() {
 	flag.BoolVar(&flagConfigFile, "configfile", false, "flag which specifies a path to a config file")
+	flag.BoolVar(&flagGreedy, "greedy", false, "flag which specifies to use greedy algorithm")
+	flag.BoolVar(&flagDynamic, "dynamic", false, "flag which specifies to use dynamic algorithm")
+	flag.BoolVar(&flagAll, "all", false, "flag which specifies to use both greedy and dynamic algorithm")
+	flag.BoolVar(&flagHelp, "help", false, "flag which specifies that help should be shown")
 }
 
 type item struct {
@@ -113,55 +121,55 @@ func dynamic(is []item, k *knapsack) *knapsack {
 ///////////////////////////// Parallel computation ---------------------------------
 
 // CheckItem for concurrent computation
-func checkItemParallel(k *knapsackParallel, i int, j int, is []item, matrix [][]int) {
-	if i <= 0 || j <= 0 {
-		wg.Done()
-		return
-	}
+// func checkItemParallel(k *knapsackParallel, i int, j int, is []item, matrix [][]int) {
+// 	if i <= 0 || j <= 0 {
+// 		wg.Done()
+// 		return
+// 	}
 
-	pick := matrix[i][j]
-	fmt.Printf("\n pick is: %v", pick)
-	fmt.Printf("\n matrix[i-1][j] is: %v", matrix[i-1][j])
-	if pick != matrix[i-1][j] {
-		k.addItemParallel(is[i-1])
-		wg.Add(1) // for starting a new go routine
-		go checkItemParallel(k, i-1, j-is[i-1].volume, is, matrix)
-	} else {
-		wg.Add(1) // for starting a new go routine
-		go checkItemParallel(k, i-1, j, is, matrix)
-	}
-}
+// 	pick := matrix[i][j]
+// 	fmt.Printf("\n pick is: %v", pick)
+// 	fmt.Printf("\n matrix[i-1][j] is: %v", matrix[i-1][j])
+// 	if pick != matrix[i-1][j] {
+// 		k.addItemParallel(is[i-1])
+// 		wg.Add(1) // for starting a new go routine
+// 		go checkItemParallel(k, i-1, j-is[i-1].volume, is, matrix)
+// 	} else {
+// 		wg.Add(1) // for starting a new go routine
+// 		go checkItemParallel(k, i-1, j, is, matrix)
+// 	}
+// }
 
-func dynamicParallel(is []item, k *knapsackParallel) *knapsackParallel {
-	numItems := len(is) // number of items in knapsack
-	capacity := k.maxVolume
+// func dynamicParallel(is []item, k *knapsackParallel) *knapsackParallel {
+// 	numItems := len(is) // number of items in knapsack
+// 	capacity := k.maxVolume
 
-	// create the empty matrix
-	matrix := make([][]int, numItems+1) // items
-	for i := range matrix {
-		matrix[i] = make([]int, capacity+1) // volumes
-	}
+// 	// create the empty matrix
+// 	matrix := make([][]int, numItems+1) // items
+// 	for i := range matrix {
+// 		matrix[i] = make([]int, capacity+1) // volumes
+// 	}
 
-	for i := 1; i <= numItems; i++ {
-		for j := 1; j <= capacity; j++ {
-			if is[i-1].volume <= j {
-				valueOne := float64(matrix[i-1][j])
-				valueTwo := float64(is[i-1].worth + matrix[i-1][j-is[i-1].volume])
-				matrix[i][j] = int(math.Max(valueOne, valueTwo))
-			} else {
-				matrix[i][j] = matrix[i-1][j]
-			}
-		}
-	}
+// 	for i := 1; i <= numItems; i++ {
+// 		for j := 1; j <= capacity; j++ {
+// 			if is[i-1].volume <= j {
+// 				valueOne := float64(matrix[i-1][j])
+// 				valueTwo := float64(is[i-1].worth + matrix[i-1][j-is[i-1].volume])
+// 				matrix[i][j] = int(math.Max(valueOne, valueTwo))
+// 			} else {
+// 				matrix[i][j] = matrix[i-1][j]
+// 			}
+// 		}
+// 	}
 
-	checkItemParallel(k, numItems, capacity, is, matrix)
-	k.totalWorth = matrix[numItems][capacity]
+// 	checkItemParallel(k, numItems, capacity, is, matrix)
+// 	k.totalWorth = matrix[numItems][capacity]
 
-	// Waiting for all go routines to end
-	wg.Wait()
+// 	// Waiting for all go routines to end
+// 	wg.Wait()
 
-	return k
-}
+// 	return k
+// }
 
 // Function to easily print a matrix
 func printMatrix(mat [][]int, length int) {
@@ -187,6 +195,16 @@ func main() {
 	// Stores all arguments of commandline after the flags in arguments
 	arguments := flag.Args()
 
+	if flagHelp {
+		fmt.Println("HELP")
+		fmt.Println("The following flags are available:")
+		fmt.Println("--help:\t\t\t\t\t\tshows this help message")
+		fmt.Println("--greedy:\t\t\t\t\tcomputing knapsack using the greedy algorithm")
+		fmt.Println("--dynamic:\t\t\t\t\tcomputing knapsack using the dynamic algorithm")
+		fmt.Println("--configfile \"path-to-file/filename.csv\":\tusing own .csv file for specifying own items")
+		os.Exit(0)
+	}
+
 	if flagConfigFile {
 		csvFile, err = os.Open(arguments[0]) // Opens a file for read only
 		// If no config file could be opened an error occurs and the program is ended
@@ -203,10 +221,9 @@ func main() {
 		}
 	}
 
+	// reading and parsing config file for items
 	reader := csv.NewReader(bufio.NewReader(csvFile))
-
-	var items []item
-
+	var initItems []item
 	for {
 		line, err := reader.Read() // read single lines from the .csv file
 
@@ -229,26 +246,30 @@ func main() {
 		if err != nil {
 			fmt.Printf("[ERROR] something went wrong while reading \"worth\" as int: %v\n", err)
 		}
-		items = append(items, item{
+		initItems = append(initItems, item{
 			name:   line[0],
 			volume: v,
 			worth:  w,
 		})
 	}
 
-	fmt.Printf("[INFO] result of reading the .csv file: %v\n", items)
-
-	initItems := []item{
-		item{name: "Apple", volume: 3, worth: 30},
-		item{name: "Apple", volume: 3, worth: 30},
-		item{name: "Orange", volume: 4, worth: 30},
-		item{name: "Orange", volume: 4, worth: 30},
-		item{name: "Pencil", volume: 1, worth: 10},
-		item{name: "Pencil", volume: 1, worth: 10},
-		item{name: "Pencil", volume: 1, worth: 10},
-		item{name: "Mirror", volume: 5, worth: 40},
-		item{name: "Mirror", volume: 5, worth: 40},
+	fmt.Println("Using the following items for computing knapsack:")
+	for _, i := range initItems {
+		fmt.Printf("Item: %v, Volume: %v, Worth: %v\n", i.name, i.volume, i.worth)
 	}
+	fmt.Println()
+
+	// initItems := []item{
+	// 	item{name: "Apple", volume: 3, worth: 30},
+	// 	item{name: "Apple", volume: 3, worth: 30},
+	// 	item{name: "Orange", volume: 4, worth: 30},
+	// 	item{name: "Orange", volume: 4, worth: 30},
+	// 	item{name: "Pencil", volume: 1, worth: 10},
+	// 	item{name: "Pencil", volume: 1, worth: 10},
+	// 	item{name: "Pencil", volume: 1, worth: 10},
+	// 	item{name: "Mirror", volume: 5, worth: 40},
+	// 	item{name: "Mirror", volume: 5, worth: 40},
+	// }
 
 	kg := knapsack{items: make([]item, 0), totalWorth: 0, currentItemsVolume: 0, maxVolume: 10}
 
@@ -259,32 +280,35 @@ func main() {
 	// kdp := knapsackParallel{items: &itemList, totalWorth: 0, currentItemsVolume: 0, maxVolume: 10}
 
 	// GREEDY Algorithm ------------------------------------------------------------------------------
-	greedy(initItems, &kg)
-	fmt.Println("Greedy Algorithm:")
-	resultg := ""
-	resultgWorth := kg.totalWorth
-	for _, it := range kg.items {
-		resultg += it.name + " "
+	if flagGreedy || flagAll {
+		greedy(initItems, &kg)
+		fmt.Println("Greedy Algorithm:")
+		resultg := ""
+		resultgWorth := kg.totalWorth
+		for _, it := range kg.items {
+			resultg += it.name + " "
+		}
+		fmt.Println(resultg)
+		fmt.Println("Total Worth: " + strconv.Itoa(resultgWorth))
+		fmt.Println("Total Volume: " + strconv.Itoa(kg.currentItemsVolume))
 	}
-	fmt.Println(resultg)
-	fmt.Println("Total Worth: " + strconv.Itoa(resultgWorth))
-	fmt.Println("Total Volume: " + strconv.Itoa(kg.currentItemsVolume))
 
 	// DYNAMIC Algorithm -----------------------------------------------------------------------------
-	dynamic(initItems, &kd)
+	if flagDynamic || flagAll {
+		dynamic(initItems, &kd)
+		fmt.Println()
+		fmt.Println("Dynamic Algorithm:")
+		resultd := ""
+		resultdWorth := kd.totalWorth
 
-	fmt.Println()
-	fmt.Println("Dynamic Algorithm:")
-	resultd := ""
-	resultdWorth := kd.totalWorth
+		for _, it := range kd.items {
+			resultd += it.name + " "
+		}
 
-	for _, it := range kd.items {
-		resultd += it.name + " "
+		fmt.Println(resultd)
+		fmt.Println("Total Worth: " + strconv.Itoa(resultdWorth))
+		fmt.Println("Total Volume: " + strconv.Itoa(kd.currentItemsVolume))
 	}
-
-	fmt.Println(resultd)
-	fmt.Println("Total Worth: " + strconv.Itoa(resultdWorth))
-	fmt.Println("Total Volume: " + strconv.Itoa(kd.currentItemsVolume))
 
 	// DYNAMIC PARALLEL Algorithm --------------------------------------------------------------------
 	// dynamicParallel(initItems, &kdp)
