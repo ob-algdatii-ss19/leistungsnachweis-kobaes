@@ -76,8 +76,9 @@ func greedy(is []item, k *knapsack) {
 	for i := range is {
 		err := k.addItem(is[i])
 		if err != nil {
-			fmt.Printf("[ERROR] %v", err)
-			os.Exit(1)
+			// fmt.Printf("[ERROR] %v", err)
+			fmt.Printf("")
+
 		}
 	}
 }
@@ -91,8 +92,9 @@ func checkItem(k *knapsack, i int, j int, is []item, matrix [][]int) {
 	if pick != matrix[i-1][j] {
 		err := k.addItem(is[i-1])
 		if err != nil {
-			fmt.Printf("[ERROR] %v", err)
-			os.Exit(1)
+			// fmt.Printf("[ERROR] %v", err)
+			fmt.Printf("")
+
 		}
 		checkItem(k, i-1, j-is[i-1].volume, is, matrix)
 	} else {
