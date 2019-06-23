@@ -1,15 +1,27 @@
 package main
 
 import (
+	bufio "bufio"
+	csv "encoding/csv"
 	"errors"
 	"fmt"
+	flag "github.com/ogier/pflag"
+	io "io"
 	"math"
+	os "os"
 	"sort"
-	"strconv"
+	strconv "strconv"
 	"sync"
 )
 
-var wg sync.WaitGroup
+var (
+	flagConfigFile bool
+	wg             sync.WaitGroup
+)
+
+func init() {
+	flag.BoolVar(&flagConfigFile, "configfile", false, "flag which specifies a path to a config file")
+}
 
 type item struct {
 	name          string
@@ -165,6 +177,67 @@ func printMatrix(mat [][]int, length int) {
 }
 
 func main() {
+	var csvFile *os.File
+	var err error
+
+	// Flags ---------------------------------------------------------------------------
+	// Parsing the flags from above
+	flag.Parse()
+
+	// Stores all arguments of commandline after the flags in arguments
+	arguments := flag.Args()
+
+	if flagConfigFile {
+		csvFile, err = os.Open(arguments[0]) // Opens a file for read only
+		// If no config file could be opened an error occurs and the program is ended
+		if err != nil {
+			fmt.Printf("[ERROR] %v", err)
+			os.Exit(1)
+		}
+	} else {
+		csvFile, err = os.Open("config.csv") // Opens a file for read only
+		// If no config file could be opened an error occurs and the program is ended
+		if err != nil {
+			fmt.Printf("[ERROR] %v", err)
+			os.Exit(1)
+		}
+	}
+
+	reader := csv.NewReader(bufio.NewReader(csvFile))
+
+	var items []item
+
+	for {
+		line, err := reader.Read() // read single lines from the .csv file
+
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			fmt.Printf("[ERROR] %v\n", err)
+		}
+
+		if line[0] == "#" {
+			continue
+		}
+
+		v, err := strconv.Atoi(line[1])
+		if err != nil {
+			fmt.Printf("[ERROR] something went wrong while reading \"volume\" as int: %v\n", err)
+		}
+
+		w, err := strconv.Atoi(line[2])
+		if err != nil {
+			fmt.Printf("[ERROR] something went wrong while reading \"worth\" as int: %v\n", err)
+		}
+		items = append(items, item{
+			name:   line[0],
+			volume: v,
+			worth:  w,
+		})
+	}
+
+	fmt.Printf("[INFO] result of reading the .csv file: %v\n", items)
+
 	initItems := []item{
 		item{name: "Apple", volume: 3, worth: 30},
 		item{name: "Apple", volume: 3, worth: 30},
@@ -182,8 +255,8 @@ func main() {
 	kd := knapsack{items: make([]item, 0), totalWorth: 0, currentItemsVolume: 0, maxVolume: 10}
 
 	// initializing a knapsack parallel struct which contains pointer to
-	itemList := make([]item, 0)
-	kdp := knapsackParallel{items: &itemList, totalWorth: 0, currentItemsVolume: 0, maxVolume: 10}
+	// itemList := make([]item, 0)
+	// kdp := knapsackParallel{items: &itemList, totalWorth: 0, currentItemsVolume: 0, maxVolume: 10}
 
 	// GREEDY Algorithm ------------------------------------------------------------------------------
 	greedy(initItems, &kg)
@@ -214,19 +287,19 @@ func main() {
 	fmt.Println("Total Volume: " + strconv.Itoa(kd.currentItemsVolume))
 
 	// DYNAMIC PARALLEL Algorithm --------------------------------------------------------------------
-	dynamicParallel(initItems, &kdp)
+	// dynamicParallel(initItems, &kdp)
 
-	fmt.Println()
-	fmt.Println("Dynamic Algorithm in parallel:")
-	resultdp := ""
-	resultdpWorth := kdp.totalWorth
+	// fmt.Println()
+	// fmt.Println("Dynamic Algorithm in parallel:")
+	// resultdp := ""
+	// resultdpWorth := kdp.totalWorth
 
-	for _, it := range *kdp.items {
-		fmt.Println(it)
-		resultdp += it.name + " "
-	}
+	// for _, it := range *kdp.items {
+	// 	fmt.Println(it)
+	// 	resultdp += it.name + " "
+	// }
 
-	fmt.Println(resultdp)
-	fmt.Println("Total Worth parallel: " + strconv.Itoa(resultdpWorth))
-	fmt.Println("Total Volume parallel: " + strconv.Itoa(kdp.currentItemsVolume))
+	// fmt.Println(resultdp)
+	// fmt.Println("Total Worth parallel: " + strconv.Itoa(resultdpWorth))
+	// fmt.Println("Total Volume parallel: " + strconv.Itoa(kdp.currentItemsVolume))
 }
