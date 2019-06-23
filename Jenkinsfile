@@ -7,7 +7,7 @@ pipeline {
             }
             steps {
                 sh 'go get github.com/ogier/pflag'                
-                sh 'echo go test -v'
+                // sh 'echo go test -v'
                 sh 'echo go test -bench=.'
             }
         }

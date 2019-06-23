@@ -4,20 +4,55 @@
 package main
 
 import (
-	"testing"
+	bufio "bufio"
+	csv "encoding/csv"
+	fmt "fmt"
+	io "io"
+	os "os"
+	strconv "strconv"
+	testing "testing"
 )
 
 func BenchmarkDynamic(b *testing.B) {
-	initItems := []item{
-		item{name: "Apple", volume: 3, worth: 30},
-		item{name: "Apple", volume: 3, worth: 30},
-		item{name: "Orange", volume: 4, worth: 30},
-		item{name: "Orange", volume: 4, worth: 30},
-		item{name: "Pencil", volume: 1, worth: 10},
-		item{name: "Pencil", volume: 1, worth: 10},
-		item{name: "Pencil", volume: 1, worth: 10},
-		item{name: "Mirror", volume: 5, worth: 40},
-		item{name: "Mirror", volume: 5, worth: 40},
+
+	// reading a .csv file with items for testing purposes
+	csvFile, err := os.Open("configtest.csv")
+
+	// if no config file could be opened an error occurs and the program is ended
+	if err != nil {
+		fmt.Printf("[ERROR] %v", err)
+		os.Exit(1)
+	}
+
+	reader := csv.NewReader(bufio.NewReader(csvFile))
+	var initItems []item
+	for {
+		line, err := reader.Read() // read single lines from the .csv file
+
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			fmt.Printf("[ERROR] %v\n", err)
+		}
+
+		if line[0] == "#" {
+			continue
+		}
+
+		v, err := strconv.Atoi(line[1])
+		if err != nil {
+			fmt.Printf("[ERROR] something went wrong while reading \"volume\" as int: %v\n", err)
+		}
+
+		w, err := strconv.Atoi(line[2])
+		if err != nil {
+			fmt.Printf("[ERROR] something went wrong while reading \"worth\" as int: %v\n", err)
+		}
+		initItems = append(initItems, item{
+			name:   line[0],
+			volume: v,
+			worth:  w,
+		})
 	}
 
 	kd := knapsack{items: make([]item, 0), totalWorth: 0, currentItemsVolume: 0, maxVolume: 10}
@@ -26,25 +61,3 @@ func BenchmarkDynamic(b *testing.B) {
 		dynamic(initItems, &kd)
 	}
 }
-
-// func BenchmarkDynamicParallel(b *testing.B) {
-// 	initItems := []item{
-// 		item{name: "Apple", volume: 3, worth: 30},
-// 		item{name: "Apple", volume: 3, worth: 30},
-// 		item{name: "Orange", volume: 4, worth: 30},
-// 		item{name: "Orange", volume: 4, worth: 30},
-// 		item{name: "Pencil", volume: 1, worth: 10},
-// 		item{name: "Pencil", volume: 1, worth: 10},
-// 		item{name: "Pencil", volume: 1, worth: 10},
-// 		item{name: "Mirror", volume: 5, worth: 40},
-// 		item{name: "Mirror", volume: 5, worth: 40},
-// 	}
-
-// 	itemList := make([]item, 0)
-
-// 	kd := knapsackParallel{items: &itemList, totalWorth: 0, currentItemsVolume: 0, maxVolume: 10}
-
-// 	for n := 0; n < b.N; n++ {
-// 		dynamicParallel(initItems, &kd)
-// 	}
-// }

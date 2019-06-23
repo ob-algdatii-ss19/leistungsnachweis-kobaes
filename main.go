@@ -1,5 +1,6 @@
 package main
 
+//nolint:goimports
 import (
 	bufio "bufio"
 	csv "encoding/csv"
@@ -11,18 +12,20 @@ import (
 	os "os"
 	"sort"
 	strconv "strconv"
-	"sync"
+	// "sync"
 )
 
+//nolint:gochecknoglobals
 var (
 	flagConfigFile bool
 	flagGreedy     bool
 	flagDynamic    bool
 	flagHelp       bool
 	flagAll        bool
-	wg             sync.WaitGroup
+	// wg             sync.WaitGroup
 )
 
+//nolint:gochecknoinits
 func init() {
 	flag.BoolVar(&flagConfigFile, "configfile", false, "flag which specifies a path to a config file")
 	flag.BoolVar(&flagGreedy, "greedy", false, "flag which specifies to use greedy algorithm")
@@ -41,10 +44,10 @@ type knapsack struct {
 	totalWorth, currentItemsVolume, maxVolume int
 }
 
-type knapsackParallel struct {
-	items                                     *[]item
-	totalWorth, currentItemsVolume, maxVolume int
-}
+// type knapsackParallel struct {
+// 	items                                     *[]item
+// 	totalWorth, currentItemsVolume, maxVolume int
+// }
 
 func (k *knapsack) addItem(i item) error {
 	if k.currentItemsVolume+i.volume <= k.maxVolume {
@@ -53,25 +56,29 @@ func (k *knapsack) addItem(i item) error {
 		k.items = append(k.items, i)
 		return nil
 	}
-	return errors.New("item too big!")
+	return errors.New("item too big")
 }
 
-func (k *knapsackParallel) addItemParallel(i item) error {
-	if k.currentItemsVolume+i.volume <= k.maxVolume {
-		k.currentItemsVolume += i.volume
-		k.totalWorth += i.worth
-		*k.items = append(*k.items, i)
-		return nil
-	}
-	return errors.New("item too big!")
-}
+// func (k *knapsackParallel) addItemParallel(i item) error {
+// 	if k.currentItemsVolume+i.volume <= k.maxVolume {
+// 		k.currentItemsVolume += i.volume
+// 		k.totalWorth += i.worth
+// 		*k.items = append(*k.items, i)
+// 		return nil
+// 	}
+// 	return errors.New("item too big!")
+// }
 
 func greedy(is []item, k *knapsack) {
 	sort.Slice(is, func(i, j int) bool {
 		return (is[i].worth / is[i].volume) > (is[j].worth / is[j].volume)
 	})
 	for i := range is {
-		k.addItem(is[i])
+		err := k.addItem(is[i])
+		if err != nil {
+			fmt.Printf("[ERROR] %v", err)
+			os.Exit(1)
+		}
 	}
 }
 
@@ -82,7 +89,11 @@ func checkItem(k *knapsack, i int, j int, is []item, matrix [][]int) {
 
 	pick := matrix[i][j]
 	if pick != matrix[i-1][j] {
-		k.addItem(is[i-1])
+		err := k.addItem(is[i-1])
+		if err != nil {
+			fmt.Printf("[ERROR] %v", err)
+			os.Exit(1)
+		}
 		checkItem(k, i-1, j-is[i-1].volume, is, matrix)
 	} else {
 		checkItem(k, i-1, j, is, matrix)
@@ -172,17 +183,17 @@ func dynamic(is []item, k *knapsack) *knapsack {
 // }
 
 // Function to easily print a matrix
-func printMatrix(mat [][]int, length int) {
-	for i, outer := range mat {
-		for j := range outer {
-			if j == length {
-				fmt.Printf("%v\n", mat[i][j])
-			} else {
-				fmt.Printf("%v\t", mat[i][j])
-			}
-		}
-	}
-}
+// func printMatrix(mat [][]int, length int) {
+// 	for i, outer := range mat {
+// 		for j := range outer {
+// 			if j == length {
+// 				fmt.Printf("%v\n", mat[i][j])
+// 			} else {
+// 				fmt.Printf("%v\t", mat[i][j])
+// 			}
+// 		}
+// 	}
+// }
 
 func main() {
 	var csvFile *os.File
