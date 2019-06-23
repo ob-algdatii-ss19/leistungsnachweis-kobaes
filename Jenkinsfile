@@ -10,8 +10,8 @@ pipeline {
                 sh 'echo go test -bench=.'
                 sh 'cd sorting && go get -v -d -t ./...'
                 sh 'go get github.com/t-yuki/gocover-cobertura'
-                sh 'cd sorting && go test -v -coverprofile=cover.out’
-                sh 'gocover-cobertura < sorting/cover.out > coverage.xml’
+                sh 'cd sorting && go test -v -coverprofile=cover.out'
+                sh 'gocover-cobertura < sorting/cover.out > coverage.xml'
                 sh 'cd sorting && go test -bench=.'
                 publishCoverage adapters: [coberturaAdapter('coverage.xml’)]
             }
