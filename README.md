@@ -69,5 +69,10 @@ Total Worth: 32
 Total Volume: 4
 ```
 
+## Testabdeckung (Coverage)
+
+Mit unseren Unittests erreichen wir eine Coverage von 97,78 % (wenn man die Coverage der main() herausrechnet):
+!coverage.JPG!
+
 # Authors
 [Sebastian Baumann](https://github.com/baschte83), [Korbinian Karl](https://github.com/korbster), [Ehsan Moslehi](https://github.com/eca852)
