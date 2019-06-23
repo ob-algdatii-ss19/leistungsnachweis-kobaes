@@ -7,6 +7,7 @@ pipeline {
             }
             steps {
                 // sh 'echo skip build'
+                sh 'go get github.com/ogier/pflag'
                 sh 'go build main.go'
             }
         }
