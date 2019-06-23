@@ -134,7 +134,7 @@ func main() {
 	}
 
 	if flagBagSize != 10 {
-		bagsize =  flagBagSize
+		bagsize = flagBagSize
 	}
 
 	if flagConfigFile {
