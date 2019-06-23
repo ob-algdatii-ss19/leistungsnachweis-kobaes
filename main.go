@@ -5,6 +5,7 @@ import (
 	csv "encoding/csv"
 	"errors"
 	"fmt"
+	flag "github.com/ogier/pflag"
 	io "io"
 	"math"
 	os "os"
@@ -13,7 +14,14 @@ import (
 	"sync"
 )
 
-var wg sync.WaitGroup
+var (
+	flagConfigFile bool
+	wg             sync.WaitGroup
+)
+
+func init() {
+	flag.BoolVar(&flagConfigFile, "configfile", false, "flag which specifies a path to a config file")
+}
 
 type item struct {
 	name          string
@@ -169,12 +177,30 @@ func printMatrix(mat [][]int, length int) {
 }
 
 func main() {
-	csvFile, err := os.Open("config.csv") // Opens a file for read only
+	var csvFile *os.File
+	var err error
 
-	// If no config file could be opened an error occurs and the program is ended
-	if err != nil {
-		fmt.Printf("[ERROR] %v", err)
-		os.Exit(1)
+	// Flags ---------------------------------------------------------------------------
+	// Parsing the flags from above
+	flag.Parse()
+
+	// Stores all arguments of commandline after the flags in arguments
+	arguments := flag.Args()
+
+	if flagConfigFile {
+		csvFile, err = os.Open(arguments[0]) // Opens a file for read only
+		// If no config file could be opened an error occurs and the program is ended
+		if err != nil {
+			fmt.Printf("[ERROR] %v", err)
+			os.Exit(1)
+		}
+	} else {
+		csvFile, err = os.Open("config.csv") // Opens a file for read only
+		// If no config file could be opened an error occurs and the program is ended
+		if err != nil {
+			fmt.Printf("[ERROR] %v", err)
+			os.Exit(1)
+		}
 	}
 
 	reader := csv.NewReader(bufio.NewReader(csvFile))
@@ -183,10 +209,15 @@ func main() {
 
 	for {
 		line, err := reader.Read() // read single lines from the .csv file
+
 		if err == io.EOF {
 			break
 		} else if err != nil {
 			fmt.Printf("[ERROR] %v\n", err)
+		}
+
+		if line[0] == "#" {
+			continue
 		}
 
 		v, err := strconv.Atoi(line[1])
