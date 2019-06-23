@@ -16,7 +16,7 @@ import (
 func BenchmarkDynamic(b *testing.B) {
 
 	// reading a .csv file with items for testing purposes
-	csvFile, err := os.Open("configtest.csv")
+	csvFile, err := os.Open("configs/configtest.csv")
 
 	// if no config file could be opened an error occurs and the program is ended
 	if err != nil {
