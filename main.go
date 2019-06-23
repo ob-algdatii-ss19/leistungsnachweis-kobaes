@@ -58,7 +58,6 @@ func (k *knapsack) addItem(i item) error {
 	return errors.New("item too big")
 }
 
-
 // func (k *knapsackParallel) addItemParallel(i item) error {
 // 	if k.currentItemsVolume+i.volume <= k.maxVolume {
 // 		k.currentItemsVolume += i.volume
