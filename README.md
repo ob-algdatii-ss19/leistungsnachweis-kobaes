@@ -65,3 +65,6 @@ Oven JewingGum
 Total Worth: 32
 Total Volume: 4
 ```
+
+# Authors
+(Sebastian Baumann|https://github.com/baschte83), (Korbinian Karl|https://github.com/korbster), (Ehsan Moslehi|https://github.com/eca852)
