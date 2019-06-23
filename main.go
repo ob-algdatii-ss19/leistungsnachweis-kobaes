@@ -1,17 +1,17 @@
 package main
 
-//nolint:goimports
 import (
 	"bufio"
 	"encoding/csv"
 	"errors"
 	"fmt"
-	flag "github.com/ogier/pflag"
 	"io"
 	"math"
 	"os"
 	"sort"
 	"strconv"
+
+	flag "github.com/ogier/pflag"
 )
 
 //nolint:gochecknoglobals
@@ -51,7 +51,6 @@ func (k *knapsack) addItem(i item) error {
 	}
 	return errors.New("item too big")
 }
-
 
 func greedy(is []item, k *knapsack) {
 	sort.Slice(is, func(i, j int) bool {
@@ -124,7 +123,7 @@ func main() {
 	// Stores all arguments of commandline after the flags in arguments
 	arguments := flag.Args()
 
-	if flagHelp || flag.NFlag() == 0{
+	if flagHelp || flag.NFlag() == 0 {
 		fmt.Println("Rucksackproblem-Solver")
 		fmt.Println("The following flags are available:")
 		flag.PrintDefaults()
