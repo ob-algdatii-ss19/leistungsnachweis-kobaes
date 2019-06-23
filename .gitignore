@@ -13,6 +13,33 @@
 
 # Files from IDEs:
 *.code-workspace
-
+.idea/
 # Ignore whole .vscode directory
 .vscode/*
+# LaTeX compile products
+*.log
+*.aux
+*.vrb
+*.bbl
+*.blg
+*.aux
+*.glo
+*.idx
+*.log
+*.toc
+*.ist
+*.acn
+*.acr
+*.alg
+*.dvi
+*.glg
+*.gls
+*.ilg
+*.ind
+*.lof
+*.lot
+*.maf
+*.mtc
+*.mtc1
+*.out
+*.synctex.gz
