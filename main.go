@@ -21,13 +21,13 @@ var (
 	flagDynamic    bool
 	flagHelp       bool
 	flagAll        bool
-	flagBagSize    bool
+	flagBagSize    int
 )
 
 //nolint:gochecknoinits
 func init() {
 	flag.BoolVar(&flagConfigFile, "configfile", false, "flag which specifies a path to a config file.")
-	flag.BoolVar(&flagConfigFile, "bagsize", false, "flag which specifies the bag size (rucksack volume). Default is 10.")
+	flag.IntVar(&flagBagSize, "bagsize", 10, "flag which specifies the bag size (rucksack volume). Default is 10.")
 	flag.BoolVar(&flagGreedy, "greedy", false, "flag which specifies to use greedy algorithm")
 	flag.BoolVar(&flagDynamic, "dynamic", false, "flag which specifies to use dynamic algorithm")
 	flag.BoolVar(&flagAll, "all", false, "flag which specifies to use both greedy and dynamic algorithm")
@@ -133,10 +133,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	if flagBagSize {
-
-	} else {
-		bagsize = 10
+	if flagBagSize != 10 {
+		bagsize =  flagBagSize
 	}
 
 	if flagConfigFile {
