@@ -1,21 +1,35 @@
 pipeline {
     agent none
     stages {
-        stage('Test') {
+        stage('Build') {
             agent {
-                docker { image 'obraun/vss-jenkins' }
+                docker { image 'obraun/vss-protoactor-jenkins' }
             }
             steps {
-                sh 'echo go test -v'
-                sh 'echo go test -bench=.'
+                // sh 'echo skip build'
+                sh 'go get github.com/ogier/pflag'
+                sh 'go build main.go'
+            }
+        }
+        stage('Test') {
+            agent {
+                docker { image 'obraun/vss-protoactor-jenkins' }
+            }
+            steps {
+                sh 'go get github.com/stretchr/testify/assert'
+                sh 'go get github.com/ogier/pflag'
+                sh 'go test -v'
+                sh 'go test -bench=.'
             }
         }
         stage('Lint') {
             agent {
-                docker { image 'obraun/vss-jenkins' }
+                // docker { image 'obraun/vss-jenkins' }
+                docker { image 'obraun/vss-protoactor-jenkins' }
             }   
             steps {
-                sh 'golangci-lint run --enable-all'
+                sh 'go get github.com/ogier/pflag'
+                sh 'golangci-lint run --enable-all --skip-files main_test.go'
             }
         }
         stage('Build Docker Image') {
